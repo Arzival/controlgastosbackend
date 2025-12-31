@@ -59,4 +59,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(SavingsFund::class);
     }
+
+    /**
+     * Get the transactions for the user.
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
+
+    /**
+     * Get the savings transactions for the user.
+     */
+    public function savingsTransactions()
+    {
+        return $this->hasMany(SavingsTransaction::class);
+    }
 }

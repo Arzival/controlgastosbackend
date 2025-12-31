@@ -9,6 +9,35 @@ use Illuminate\Support\Facades\Validator;
 class SavingsFundController extends Controller
 {
     /**
+     * Obtener todas las cajas de ahorro del usuario autenticado
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function index(Request $request)
+    {
+        $user = $request->user();
+        
+        $savingsFunds = SavingsFund::where('user_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'status' => 'success',
+            'data' => $savingsFunds->map(function ($fund) {
+                return [
+                    'id' => $fund->id,
+                    'name' => $fund->name,
+                    'description' => $fund->description,
+                    'color' => $fund->color,
+                    'balance' => $fund->balance,
+                    'created_at' => $fund->created_at,
+                ];
+            })
+        ], 200);
+    }
+
+    /**
      * Crear una nueva caja de ahorro
      *
      * @param Request $request

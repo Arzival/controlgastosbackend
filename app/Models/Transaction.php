@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class SavingsFund extends Model
+class Transaction extends Model
 {
     /**
      * The attributes that are mass assignable.
@@ -14,10 +14,12 @@ class SavingsFund extends Model
      */
     protected $fillable = [
         'user_id',
-        'name',
+        'type',
+        'amount',
+        'category',
         'description',
-        'color',
-        'balance',
+        'date',
+        'savings_fund_id',
     ];
 
     /**
@@ -28,12 +30,13 @@ class SavingsFund extends Model
     protected function casts(): array
     {
         return [
-            'balance' => 'decimal:2',
+            'amount' => 'decimal:2',
+            'date' => 'date',
         ];
     }
 
     /**
-     * Get the user that owns the savings fund.
+     * Get the user that owns the transaction.
      */
     public function user(): BelongsTo
     {
@@ -41,10 +44,10 @@ class SavingsFund extends Model
     }
 
     /**
-     * Get the savings transactions for the savings fund.
+     * Get the savings fund associated with the transaction (if any).
      */
-    public function savingsTransactions()
+    public function savingsFund(): BelongsTo
     {
-        return $this->hasMany(SavingsTransaction::class);
+        return $this->belongsTo(SavingsFund::class);
     }
 }
