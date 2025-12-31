@@ -137,4 +137,75 @@ class SavingsTransactionController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Eliminar una transacción de ahorro
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy(Request $request)
+    {
+        // Validar que se envíe el ID
+        $validator = Validator::make($request->all(), [
+            'id' => 'required|integer|exists:savings_transactions,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error de validación',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $request->user();
+        
+        // Buscar la transacción y verificar que pertenezca al usuario
+        $savingsTransaction = SavingsTransaction::where('id', $request->id)
+            ->where('user_id', $user->id)
+            ->with('savingsFund')
+            ->first();
+
+        if (!$savingsTransaction) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Transacción de ahorro no encontrada o no pertenece al usuario'
+            ], 404);
+        }
+
+        $savingsFund = $savingsTransaction->savingsFund;
+
+        // Usar transacción de base de datos para asegurar consistencia
+        DB::beginTransaction();
+        try {
+            // Revertir el balance del fondo de ahorro
+            if ($savingsTransaction->type === 'deposit') {
+                $savingsFund->balance -= $savingsTransaction->amount;
+            } else {
+                $savingsFund->balance += $savingsTransaction->amount;
+            }
+            $savingsFund->balance = max(0, $savingsFund->balance); // Asegurar que no sea negativo
+            $savingsFund->save();
+
+            // Eliminar la transacción
+            $savingsTransaction->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Transacción de ahorro eliminada exitosamente',
+                'data' => [
+                    'fund_balance' => $savingsFund->balance,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Error al eliminar la transacción de ahorro'
+            ], 500);
+        }
+    }
 }
