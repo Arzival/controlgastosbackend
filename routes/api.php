@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\SavingsFundController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\SavingsTransactionController;
+use App\Http\Controllers\CategoryController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -30,4 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // Rutas de transacciones de ahorro
     Route::get('/savings-transactions', [SavingsTransactionController::class, 'index']);
     Route::post('/savings-transactions', [SavingsTransactionController::class, 'store']);
+    
+    // Rutas de categorías
+    Route::get('/categories', [CategoryController::class, 'index']);
+    Route::post('/categories', [CategoryController::class, 'store']);
 });
